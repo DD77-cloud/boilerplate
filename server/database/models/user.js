@@ -3,8 +3,29 @@ const db = require('../index.js')
 
 
 const User = db.define('user', {
-  // what fields will we need?
-  // make sure that the password we store is salted and hashed! NEVER store the plain password
+  username: {
+    type: Sequelize.STRING,
+    allowNull: false
+
+  },
+  email: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  },
+  password: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    get() {
+        return () => this.getDataValue('password')
+    }
+},
+salt: {
+    type: Sequelize.STRING,
+    get() {
+        return() => this.getDataValue('salt')
+    }
+  }
 }, {
   hooks: {
     beforeCreate: setSaltAndPassword,
@@ -15,20 +36,28 @@ const User = db.define('user', {
 // instance methods
 User.prototype.correctPassword = function (candidatePassword) {
   // should return true or false for if the entered password matches
+  return User.encryptPassword(enteredPassword, this.salt()) === this.password()
 };
 
 // class methods
 User.generateSalt = function () {
   // this should generate our random salt
+  return crypto.randomBytes(16).toString('base64')
 };
 
 User.encryptPassword = function (plainText, salt) {
-  // accepts a plain text password and a salt, and returns its hash
+  return crypto
+  .createHash('RSA-SHA256')
+  .update(plainText)
+  .update(salt)
+  .digest('hex')
 };
 
 function setSaltAndPassword (user) {
-  // we need to salt and hash again when the user enters their password for the first time
-  // and do it again whenever they change it
+  if (user.changed('password')) {
+    user.salt = User.generateSalt()
+    user.password = User.encryptPassword(user.password(), user.salt())
+}
 }
 
 module.exports = User;
