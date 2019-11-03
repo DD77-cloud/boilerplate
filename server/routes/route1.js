@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const User = require('../database/models/user.js')
+const passport = require('passport')
 
 router.get('/me', function (req, res, next) { 
     res.json(req.user);

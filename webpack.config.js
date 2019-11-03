@@ -1,6 +1,8 @@
+const isDev = process.env.NODE_ENV === 'development'
+
 module.exports = {
   entry: "./app/main.js",
-  mode: "development",
+  mode: isDev ? 'development' : 'production',
   output: {
     path: __dirname,
     filename: "./public/bundle.js"
