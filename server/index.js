@@ -8,7 +8,7 @@ const db = require('./database/index.js')
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const dbStore = new SequelizeStore({ db: db });
 const passport = require('passport')
-
+const User = require('./database/models/user.js')
 dbStore.sync();
 passport.serializeUser((user, done) => {
   try {
@@ -19,7 +19,7 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-  User.findById(id)
+  User.findByPk(id)
     .then(user => done(null, user))
     .catch(done);
 });

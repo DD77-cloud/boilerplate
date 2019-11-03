@@ -1,22 +1,37 @@
 const router = require('express').Router();
-const {User} = require('../database/models/user.js')
-// matches GET requests to /api/puppies/
+const User = require('../database/models/user.js')
+
 router.get('/me', function (req, res, next) { 
     res.json(req.user);
 });
-// matches POST requests to /api/puppies/
+router.get('/auth/google', passport.authenticate('google', { scope: 'email' }));
+router.get('/auth/google/callback', passport.authenticate('google', {
+    successRedirect: '/',
+    failureRedirect: '/login'
+  }));
 router.post('/signup', async function (req, res, next) { 
-try {
-    const [newuser, created] = await User.create(req.body)
-    if(created) {
-        res.login(newuser)
-        res.json(newuser)
+
+     try {
+    const user = await User.create(req.body)
+    req.login(user, err => (err ? next(err) : res.json(user)))
+  } catch (err) {
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      res.status(401).send('User already exists')
+    } else {
+      next(err)
     }
-    else res.sendStatus(406)
-    } catch (error) {
-    next(error)
-}
+  }
+    //try {
+    // console.log(req.body)
+    // const newuser = await User.create(req.body)
     
+    // if(newuser) {
+    //     req.login(newuser, err => (err ? next(err) : res.json(newuser)))
+    // }
+    // else res.sendStatus(406)
+    // } catch (error) {
+    // next(error)}
+
 });
 
 router.put('/login', async function (req, res, next) { 
